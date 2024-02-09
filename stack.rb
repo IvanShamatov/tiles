@@ -1,7 +1,7 @@
 require 'forwardable'
 
 class Stack
-  attr_reader :arr
+  attr_reader :arr, :current_index
   extend Forwardable
 
   def_delegators :@arr, :size, :map, :each, :each_with_index, :[]
@@ -13,8 +13,8 @@ class Stack
   end
 
   def <<(tile)
-    @arr << tile
-    @current_index = @arr.index(tile)
+    @current_index += 1
+    @arr.insert(@current_index, tile)
   end
 
   def current
