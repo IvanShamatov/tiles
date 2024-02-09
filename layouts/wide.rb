@@ -1,7 +1,6 @@
 module Layouts
   class Wide < Base
     def calculate
-      super
       # very first elem on the top
       left = stack[0]
       left.x = 0

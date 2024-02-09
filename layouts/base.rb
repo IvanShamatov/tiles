@@ -20,8 +20,10 @@ module Layouts
 
       stack.each do |frame|
         color = stack.current == frame ? GREEN : GRAY
-        DrawRectangleLines(frame.x + 5, frame.y + 5 , frame.w - 5 , frame.h - 5, color)
-        DrawText("#{frame.content}", frame.x + 10, frame.y + 10, 30, color)
+        if frame.x && frame.y && frame.w && frame.h
+          DrawRectangleLines(frame.x + 5, frame.y + 5 , frame.w - 5 , frame.h - 5, color)
+          DrawText("#{frame.content}", frame.x + 10, frame.y + 10, 30, color)
+        end
       end
     end
   end

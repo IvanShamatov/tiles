@@ -14,16 +14,9 @@ class Window
 
   attr_accessor :layout, :stack
 
-  LAYOUTS = [
-    Layouts::Horizontal,
-    Layouts::Wide,
-    Layouts::Tall,
-    Layouts::Vertical,
-  ]
-
   def initialize
     @stack = Stack.new
-    @layout = Layouts::Horizontal.new(SCREEN_WIDTH, SCREEN_HEIGHT, @stack)
+    @layout = Layouts::AVAILABLE[0].new(SCREEN_WIDTH, SCREEN_HEIGHT, @stack)
   end
 
   def show
@@ -46,8 +39,8 @@ class Window
     end
 
     if is_key_pressed(KEY_R)
-      i = LAYOUTS.index(@layout.class)
-      self.layout = LAYOUTS[i-1].new(GetScreenWidth(), GetScreenHeight(), stack)
+      i = Layouts::AVAILABLE.index(@layout.class)
+      self.layout = Layouts::AVAILABLE[i-1].new(GetScreenWidth(), GetScreenHeight(), stack)
     end
 
     if IsWindowResized()

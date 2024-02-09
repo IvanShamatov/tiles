@@ -1,12 +1,11 @@
 module Layouts
-  class Horizontal < Base
+  class Rows < Base
     def calculate
-      super
-      fw = width / stack.size
-      fh = height
+      fw = width
+      fh = height / stack.size
       stack.each_with_index do |f, i|
-        f.x = fw * i
-        f.y = 0
+        f.x = 0
+        f.y = fh * i
         f.w = fw
         f.h = fh
       end
