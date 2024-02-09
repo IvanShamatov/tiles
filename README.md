@@ -1,10 +1,11 @@
 # Tiles
 
-* Raylib + Ruby + geometry
+- Raylib + Ruby + geometry
 
 TODO:
+
 - [ ] Moarr layouts
-- [ ] Switch layouts saving the stack
+- [x] Switch layouts saving the stack
 - [ ] Add content to tiles
-- [ ] Ability to rearrange tiles in the stack
-- [ ] Ability to change focus in the stack
+- [x] Ability to rearrange tiles in the stack
+- [x] Ability to change focus in the stack

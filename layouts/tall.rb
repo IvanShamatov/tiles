@@ -1,6 +1,7 @@
 module Layouts
   class Tall < Base
-    def place
+    def calculate
+      super
       # very first elem on the right
       left = stack[0]
       left.x = 0

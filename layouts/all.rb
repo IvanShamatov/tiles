@@ -4,5 +4,4 @@ module Layouts
   require_relative 'vertical'
   require_relative 'tall'
   require_relative 'wide'
-
 end

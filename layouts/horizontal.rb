@@ -1,6 +1,7 @@
 module Layouts
   class Horizontal < Base
-    def place
+    def calculate
+      super
       fw = width / stack.size
       fh = height
       stack.each_with_index do |f, i|
