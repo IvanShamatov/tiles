@@ -33,12 +33,15 @@ class Window
   end
 
   def update
-    if is_key_pressed(KEY_F)
-      # adding new tile to the stack
+    if is_key_pressed(KEY_C)
       stack << Stack::Tile.new(nil, nil, nil, nil, stack.size)
     end
 
-    if is_key_pressed(KEY_R)
+    if is_key_pressed(KEY_D)
+      stack.del
+    end
+
+    if is_key_pressed(KEY_L)
       i = Layouts::AVAILABLE.index(@layout.class)
       self.layout = Layouts::AVAILABLE[i-1].new(GetScreenWidth(), GetScreenHeight(), stack)
     end

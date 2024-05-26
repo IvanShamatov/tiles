@@ -4,7 +4,7 @@ class Stack
   attr_reader :arr, :current_index
   extend Forwardable
 
-  def_delegators :@arr, :size, :map, :each, :each_with_index, :[]
+  def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select
 
   Tile = Struct.new(:x, :y, :w, :h, :content)
   def initialize
@@ -15,6 +15,13 @@ class Stack
   def <<(tile)
     @current_index += 1
     @arr.insert(@current_index, tile)
+  end
+
+  def del
+    unless @arr.size == 1
+      @arr.delete_at(@current_index)
+      @current_index -=1
+    end
   end
 
   def current
