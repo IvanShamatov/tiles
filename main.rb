@@ -9,7 +9,7 @@ require_relative 'stack'
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 1000
 
-class Window
+class App
   include RLHelpers
 
   attr_accessor :layout, :stack
@@ -32,22 +32,17 @@ class Window
     end
   end
 
+  def color_rand
+    [SKYBLUE, RED, BLUE, GREEN, DARKGREEN, GOLD, YELLOW].sample
+  end
+
   def update
     if is_key_pressed(KEY_C)
-      stack << Stack::Tile.new(nil, nil, nil, nil, stack.size)
+      stack.place(Stack::Window.new(nil, nil, nil, nil, stack.size, color_rand))
     end
 
     if is_key_pressed(KEY_D)
-      stack.del
-    end
-
-    if is_key_pressed(KEY_L)
-      i = Layouts::AVAILABLE.index(@layout.class)
-      self.layout = Layouts::AVAILABLE[i-1].new(GetScreenWidth(), GetScreenHeight(), stack)
-    end
-
-    if IsWindowResized()
-      layout.resize(GetScreenWidth(), GetScreenHeight())
+      stack.delete_focused
     end
 
     # move focus from the current tile to the previous one
@@ -69,6 +64,21 @@ class Window
     if is_key_pressed(KEY_DOWN)
       stack.swap_next
     end
+
+    if is_key_pressed(KEY_L)
+      i = Layouts::AVAILABLE.index(@layout.class)
+      self.layout = Layouts::AVAILABLE[i-1].new(GetScreenWidth(), GetScreenHeight(), stack)
+    end
+
+    if is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+      pos = GetMousePosition()
+      window = layout.focussed_window(pos.x, pos.y)
+      stack.focus(window)
+    end
+
+    if IsWindowResized()
+      layout.resize(GetScreenWidth(), GetScreenHeight())
+    end
   end
 
   def draw
@@ -79,4 +89,4 @@ class Window
   end
 end
 
-Window.new.show
+App.new.show

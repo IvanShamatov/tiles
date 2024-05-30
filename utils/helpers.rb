@@ -24,6 +24,7 @@ module RLHelpers
   def window_should_close?(...) = WindowShouldClose(...)
   def disable_cursor(...) = DisableCursor(...)
   def is_key_pressed(...) = IsKeyPressed(...)
+  def is_mouse_button_pressed(...) = IsMouseButtonPressed(...)
   def update_camera(...) = UpdateCamera(...)
   def fade(...) = Fade(...)
   def clear_background(...) = ClearBackground(...)

@@ -1,50 +1,52 @@
 require 'forwardable'
 
 class Stack
-  attr_reader :arr, :current_index
   extend Forwardable
 
-  def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select
+  def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select, :find
 
-  Tile = Struct.new(:x, :y, :w, :h, :content)
+  Window = Struct.new(:x, :y, :w, :h, :content, :color)
+
   def initialize
-    @arr = [Tile.new(nil, nil, nil, nil, 0)]
-    @current_index = 0
+    @arr = []#Window.new(nil, nil, nil, nil, 0, RED)]
+    @focus = 0
   end
 
-  def <<(tile)
-    @current_index += 1
-    @arr.insert(@current_index, tile)
+  def place(window)
+    @arr << window
+    @focus = @arr.index(window)
   end
 
-  def del
-    unless @arr.size == 1
-      @arr.delete_at(@current_index)
-      @current_index -=1
-    end
+  def delete_focused
+    @arr.delete_at(@focus)
+    @focus -=1
+  end
+
+  def focus(window)
+    @focus = @arr.index(window)
   end
 
   def current
-    @arr[@current_index]
+    @arr[@focus]
   end
 
   def focus_prev
-    @current_index = (@current_index - 1) % @arr.size
+    @focus = (@focus - 1) % @arr.size
   end
 
   def focus_next
-    @current_index = (@current_index + 1) % @arr.size
+    @focus = (@focus + 1) % @arr.size
   end
 
   def swap_prev
-    prev = (@current_index - 1) % @arr.size
-    @arr[@current_index], @arr[prev] = @arr[prev], @arr[@current_index]
-    @current_index = prev
+    prev = (@focus - 1) % @arr.size
+    @arr[@focus], @arr[prev] = @arr[prev], @arr[@focus]
+    @focus = prev
   end
 
   def swap_next
-    _next = (@current_index + 1) % @arr.size
-    @arr[@current_index], @arr[_next] = @arr[_next], @arr[@current_index]
-    @current_index = _next
+    _next = (@focus + 1) % @arr.size
+    @arr[@focus], @arr[_next] = @arr[_next], @arr[@focus]
+    @focus = _next
   end
 end

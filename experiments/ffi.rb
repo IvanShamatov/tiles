@@ -13,6 +13,7 @@ module Xlib
   attach_function :XUnmapWindow, [:pointer, :ulong], :int
   attach_function :XGetWindowAttributes, [:pointer, :ulong, :pointer], :int
   attach_function :XMoveResizeWindow, [:pointer, :ulong, :int, :int, :uint, :uint], :int
+  attach_function :XSync, [:pointer, :int], :void
 
   class XWindowAttributes < FFI::Struct
     layout :x, :int,
@@ -78,20 +79,23 @@ end
 root_window = Xlib.XDefaultRootWindow(display)
 puts "Root window ID: #{root_window}"
 
-# Отладка: Проверьте, есть ли другой клиент, уже захвативший управление окнами
-window_attrs = FFI::MemoryPointer.new(:long)
-status = Xlib.XGetWindowAttributes(display, root_window, window_attrs)
-puts "XGetWindowAttributes status: #{status}"
-puts "Window attributes: #{window_attrs.read_long}"
+# window_attrs = FFI::MemoryPointer.new(:long)
+# status = Xlib.XGetWindowAttributes(display, root_window, window_attrs)
+# puts "XGetWindowAttributes status: #{status}"
+# puts "Window attributes: #{window_attrs.read_long}"
+
 
 # Выбираем события, которые нас интересуют
-event_mask = Xlib::Constants::SubstructureRedirectMask | Xlib::Constants::SubstructureNotifyMask | Xlib::Constants::KeyPressMask | Xlib::Constants::ButtonPressMask
+event_mask = Xlib::Constants::KeyPressMask|Xlib::Constants::ButtonPressMask
 status = Xlib.XSelectInput(display, root_window, event_mask)
-puts "XSelectInput status: #{status}"
-if status != 0
-  puts "XSelectInput failed"
-  exit 1
-end
+Xlib.XSync(display, 0)
+
+#Отладка: Проверьте, есть ли другой клиент, уже захвативший управление окнами
+# puts "XSelectInput status: #{status}"
+# if status != 0
+#   puts "XSelectInput failed"
+#   exit 1
+# end
 
 windows = {}
 
@@ -158,17 +162,18 @@ loop do
   Xlib.XNextEvent(display, event)
 
   case event[:type]
-  when Xlib::Constants::MapRequest
-    handle_map_request(event)
-  when Xlib::Constants::ConfigureRequest
-    handle_configure_request(event)
-  when Xlib::Constants::UnmapNotify
-    handle_unmap_notify(event)
-  when Xlib::Constants::DestroyNotify
-    handle_destroy_notify(event)
+  # when Xlib::Constants::MapRequest
+  #   handle_map_request(event)
+  # when Xlib::Constants::ConfigureRequest
+  #   handle_configure_request(event)
+  # when Xlib::Constants::UnmapNotify
+  #   handle_unmap_notify(event)
+  # when Xlib::Constants::DestroyNotify
+  #   handle_destroy_notify(event)
   when Xlib::Constants::KeyPress
     handle_key_press(event)
-  when Xlib::Constants::ButtonPress
-    handle_button_press(event)
+  # when Xlib::Constants::ButtonPress
+  #   handle_button_press(event)
   end
+  Xlib.XSync(display, 0)
 end
