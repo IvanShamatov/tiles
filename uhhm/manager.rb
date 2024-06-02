@@ -21,13 +21,12 @@ class Manager
 
   attr_reader :modifier, :modifier_ignore, :display, :tiles
 
-  def initialize(dispatcher, mod, layout)
-    @dispatcher       = dispatcher
+  def initialize
+    @display = Uh::Display.new
+    @stack = Stack.new # window stack
+    @layout = Layout.new
     @modifier         = :mod1
     @modifier_ignore  = []
-    @display          = Uh::Display.new
-    @tiles          = []
-    @layout = layout
   end
 
   def to_io

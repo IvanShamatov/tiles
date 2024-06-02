@@ -12,22 +12,22 @@ class Runner
   attr_reader :actions
 
   def initialize
-    @manager  = Manager.new(@config.modifier, @config.layout)
-    @stopped  = false
+    @manager = Manager.new(@modifier, @layout)
+    @stopped = false
   end
 
   def config
     @modifier = :mod1
     @keybinds = {
-      [:q, :shift] => proc { stop! },
+      %i[q shift] => proc { stop! },
       # [:p]         => proc { execute 'dmenu_run -b' },
       # [:enter]     => proc { execute 'kitty' },
-      [:left]      => proc { puts "focus previous"},
-      [:right]     => proc { puts "focus next"},
-      [:up]        => proc { puts "swap previous"},
-      [:down]      => proc { puts "swap next"},
-      [:d]         => proc { puts "delete window" },
-      [:l]         => proc { puts "next layout" }
+      [:left] => proc { puts 'focus previous' },
+      [:right] => proc { puts 'focus next' },
+      [:up] => proc { puts 'swap previous' },
+      [:down] => proc { puts 'swap next' },
+      [:d] => proc { puts 'delete window' },
+      [:l] => proc { puts 'next layout' }
     }.freeze
   end
 
@@ -62,15 +62,15 @@ class Runner
     manager.disconnect
   end
 
-  def evaluate code = nil, &block
+  def evaluate(code = nil, &block)
     if code
-      instance_exec &code
+      instance_exec(&code)
     else
-      instance_exec &block
+      instance_exec(&block)
     end
   end
 
-  def execute command
+  def execute(command)
     log "Execute: #{command}"
     pid = fork do
       fork do
@@ -85,9 +85,9 @@ class Runner
     Process.waitpid pid
   end
 
-  # Kills layout current client (focused) with {Client#kill}
   def kill_current
     return unless layout.current_client
+
     layout.current_client.kill
   end
 end
