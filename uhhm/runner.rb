@@ -12,27 +12,20 @@ class Runner
   attr_reader :actions
 
   def initialize
-    @manager = Manager.new(@modifier, @layout)
+    @manager = Manager.new
     @stopped = false
-  end
-
-  def config
     @modifier = :mod1
     @keybinds = {
-      %i[q shift] => proc { stop! },
-      # [:p]         => proc { execute 'dmenu_run -b' },
-      # [:enter]     => proc { execute 'kitty' },
-      [:left] => proc { puts 'focus previous' },
-      [:right] => proc { puts 'focus next' },
-      [:up] => proc { puts 'swap previous' },
-      [:down] => proc { puts 'swap next' },
-      [:d] => proc { puts 'delete window' },
-      [:l] => proc { puts 'next layout' }
+      # %i[q shift] => proc { stop! },
+      # # [:p]         => proc { execute 'dmenu_run -b' },
+      # # [:enter]     => proc { execute 'kitty' },
+      # [:left] => proc { puts 'focus previous' },
+      # [:right] => proc { puts 'focus next' },
+      # [:up] => proc { puts 'swap previous' },
+      # [:down] => proc { puts 'swap next' },
+      # [:d] => proc { puts 'delete window' },
+      # [:l] => proc { puts 'next layout' }
     }.freeze
-  end
-
-  def logger
-    @logger ||= Logger.new
   end
 
   def stopped?
@@ -45,21 +38,21 @@ class Runner
 
   def register_event_hooks
     @keybinds.each do |keysym, command|
-      @dispatcher.on(:key, *keysym) { evaluate(command) }
+      # @dispatcher.on(:key, *keysym) { evaluate(command) }
     end
   end
 
   def connect_manager
-    manager.connect
-    @keybinds.each_key { |keysym| manager.grab_key(*keysym) }
+    @manager.connect
+    @keybinds.each_key { |keysym| @manager.grab_key(*keysym) }
   end
 
   def run
-    manager.handle_next_event until stopped?
+    @manager.handle_next_event until stopped?
   end
 
   def terminate
-    manager.disconnect
+    @manager.disconnect
   end
 
   def evaluate(code = nil, &block)
@@ -71,14 +64,14 @@ class Runner
   end
 
   def execute(command)
-    log "Execute: #{command}"
+    $logger.info "Execute: #{command}"
     pid = fork do
       fork do
         Process.setsid
         begin
           exec command
         rescue Errno::ENOENT => e
-          log_error "ExecuteError: #{e}"
+          $logger.info "ExecuteError: #{e}"
         end
       end
     end
@@ -86,8 +79,8 @@ class Runner
   end
 
   def kill_current
-    return unless layout.current_client
+    return unless @layout.current_client
 
-    layout.current_client.kill
+    @layout.current_client.kill
   end
 end

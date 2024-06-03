@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Tile
-  include GeoAccessors
+  include Uh::GeoAccessors
 
   attr_reader   :window
   attr_accessor :geo, :unmap_count

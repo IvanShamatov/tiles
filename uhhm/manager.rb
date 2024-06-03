@@ -6,17 +6,17 @@ class Manager
                 Events::SUBSTRUCTURE_REDIRECT_MASK |
                 Events::SUBSTRUCTURE_NOTIFY_MASK |
                 Events::STRUCTURE_NOTIFY_MASK
-  DEFAULT_GEO = Geo.new(0, 0, 320, 240).freeze
+  DEFAULT_GEO = Uh::Geo.new(0, 0, 320, 240).freeze
 
   KEY_MODIFIERS = {
-    shift:  1 << 0,
-    lock:   1 << 1,
-    ctrl:   1 << 2,
-    mod1:   1 << 3,
-    mod2:   1 << 4,
-    mod3:   1 << 5,
-    mod4:   1 << 6,
-    mod5:   1 << 7
+    shift: 1 << 0,
+    lock: 1 << 1,
+    ctrl: 1 << 2,
+    mod1: 1 << 3,
+    mod2: 1 << 4,
+    mod3: 1 << 5,
+    mod4: 1 << 6,
+    mod5: 1 << 7
   }.freeze
 
   attr_reader :modifier, :modifier_ignore, :display, :tiles
@@ -25,8 +25,8 @@ class Manager
     @display = Uh::Display.new
     @stack = Stack.new # window stack
     @layout = Layout.new
-    @modifier         = :mod1
-    @modifier_ignore  = []
+    @modifier = :mod1
+    @modifier_ignore = []
   end
 
   def to_io
@@ -34,28 +34,28 @@ class Manager
   end
 
   def connect
-    log_debug "Connecting to X server on `#{display}'"
+    $logger.info "Connecting to X server on `#{display}'"
     @display.open
     check_other_wm!
     Uh::Display.on_error { |*args| handle_error(*args) }
     @display.sync false
 
-    log "Connected to X server on `#{display}'"
-    layout.register(@display)
+    $logger.info "Connected to X server on `#{display}'"
+    @layout.register(@display)
 
     @display.root.mask = ROOT_MASK
   end
 
   def disconnect
     @display.close
-    log 'Disconnected from X server'
+    $logger.info 'Disconnected from X server'
   end
 
   def flush
     @display.flush
   end
 
-  def grab_key(keysym, mod = nil)
+  def grab_key(keysym, _mod = nil)
     mod_mask = KEY_MODIFIERS[@modifier]
     combine_modifier_masks(@modifier_ignore) do |ignore_mask|
       @display.grab_key keysym.to_s, mod_mask | ignore_mask
@@ -66,8 +66,8 @@ class Manager
     if (tile = tile_for(window))
       tile.configure
     else
-      log "Configuring window: #{window}"
-      geo = layout.suggest_geo
+      $logger.info "Configuring window: #{window}"
+      geo = @layout.suggest_geo
       window.configure_event geo || DEFAULT_GEO
     end
   end
@@ -76,8 +76,8 @@ class Manager
     return if window.override_redirect? || tile_for(window)
 
     @tiles << tile = tile.new(window)
-    log "Managing client #{client}"
-    layout << tile
+    $logger.info "Managing client #{client}"
+    @layout << tile
     @display.listen_events window, Events::PROPERTY_CHANGE_MASK
   end
 
@@ -101,9 +101,9 @@ class Manager
     return unless (tile = tile_for(window))
 
     tile.update_window_properties
-    log "Updating client #{tile}"
+    $logger.info "Updating client #{tile}"
 
-    layout.update(tile)
+    @layout.update(tile)
   end
 
   def handle_next_event
@@ -115,8 +115,7 @@ class Manager
   end
 
   def handle(event)
-    XEventLogger.new(@logger).log_event event
-  # end
+    XEventLogger.new($logger).log_event event
     # case event.type
     # when 'error'
     #   handle_error(event)
@@ -137,14 +136,13 @@ class Manager
     # end
   end
 
-
   private
 
   def handle_error(*error)
     if error.none?
-      log_fatal 'Fatal X IO Error received'
+      $logger.info 'Fatal X IO Error received'
     else
-      XEventLogger.new(@logger).log_xerror(*error)
+      XEventLogger.new($logger).log_xerror(*error)
     end
   end
 
@@ -166,8 +164,8 @@ class Manager
   end
 
   def handle_expose(event)
-    log "Exposing window: #{event.window}"
-    layout.expose(event.window)
+    $logger.info "Exposing window: #{event.window}"
+    @layout.expose(event.window)
   end
 
   def handle_map_request(event)
@@ -188,13 +186,12 @@ class Manager
 
   def unmanage(tile)
     @tiles.delete tile
-    log "Unmanaging client #{tile}"
-    layout.remove tile  def handle(event)
-    XEventLogger.new(@logger).log_event event
+    $logger.info "Unmanaging client #{tile}"
+    @layout.remove tile
   end
 
   def check_other_wm!
-    Display.on_error { raise OtherWMRunningError }
+    Uh::Display.on_error { raise OtherWMRunningError }
     @display.listen_events INPUT_MASK
     @display.sync false
   end
