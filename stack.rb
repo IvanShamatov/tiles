@@ -8,7 +8,7 @@ class Stack
   Window = Struct.new(:x, :y, :w, :h, :content, :color)
 
   def initialize
-    @arr = []#Window.new(nil, nil, nil, nil, 0, RED)]
+    @arr = []
     @focus = 0
   end
 

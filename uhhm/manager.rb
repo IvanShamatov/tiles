@@ -63,10 +63,10 @@ class Manager
   end
 
   def configure(window)
+    $logger.info "Configuring window: #{window}"
     if (tile = tile_for(window))
       tile.configure
     else
-      $logger.info "Configuring window: #{window}"
       geo = @layout.suggest_geo
       window.configure_event geo || DEFAULT_GEO
     end
@@ -181,11 +181,11 @@ class Manager
   end
 
   def tile_for(window)
-    @tiles.find { |e| e.window == window }
+    @stack.find { |e| e.window == window }
   end
 
   def unmanage(tile)
-    @tiles.delete tile
+    @stack.delete tile
     $logger.info "Unmanaging client #{tile}"
     @layout.remove tile
   end
