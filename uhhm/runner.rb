@@ -3,8 +3,8 @@
 class Runner
   def self.run
     runner = new
-    runner.register_event_hooks
     runner.connect_manager
+    runner.execute('kitty')
     runner.run
     runner.terminate
   end
@@ -12,20 +12,8 @@ class Runner
   attr_reader :actions
 
   def initialize
-    @manager = Manager.new
+    @manager = Manager.new(self)
     @stopped = false
-    @modifier = :mod1
-    @keybinds = {
-      # %i[q shift] => proc { stop! },
-      # # [:p]         => proc { execute 'dmenu_run -b' },
-      # # [:enter]     => proc { execute 'kitty' },
-      # [:left] => proc { puts 'focus previous' },
-      # [:right] => proc { puts 'focus next' },
-      # [:up] => proc { puts 'swap previous' },
-      # [:down] => proc { puts 'swap next' },
-      # [:d] => proc { puts 'delete window' },
-      # [:l] => proc { puts 'next layout' }
-    }.freeze
   end
 
   def stopped?
@@ -44,7 +32,6 @@ class Runner
 
   def connect_manager
     @manager.connect
-    @keybinds.each_key { |keysym| @manager.grab_key(*keysym) }
   end
 
   def run

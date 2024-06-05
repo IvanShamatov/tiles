@@ -5,8 +5,6 @@ class Stack
 
   def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select, :find
 
-  Window = Struct.new(:x, :y, :w, :h, :content, :color)
-
   def initialize
     @arr = []
     @focus = 0

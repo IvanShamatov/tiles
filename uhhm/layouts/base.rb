@@ -1,13 +1,11 @@
 module Layouts
   class Base
-    attr_reader :width, :height, :stack
+    attr_reader :display, :stack, :width, :height
 
-    def initialize(width, height, stack)
-      @width, @height, @stack = width, height, stack
-    end
-
-    def resize(width, height)
-      @width, @height = width, height
+    def initialize(display, stack)
+      @display, @stack = display, stack
+      @width = 1280
+      @height = 720
     end
 
     def recalculate
@@ -20,24 +18,22 @@ module Layouts
       stack.find do |tile|
         tile.x <= x &&
           tile.y <= y &&
-          tile.x+tile.w > x &&
-          tile.y+tile.h > y
+          tile.x + tile.w > x &&
+          tile.y + tile.h > y
       end
     end
 
     def render
       recalculate
+      binding.pry
 
-      stack.each do |frame|
-        color = stack.current == frame ? GREEN : BLACK
-        if frame.x && frame.y && frame.w && frame.h
-          DrawRectangle(frame.x, frame.y, frame.w, frame.h, frame.color)
-          rectangle = Rectangle.create(frame.x + 5, frame.y + 5 , frame.w - 5 , frame.h - 5)
-          DrawRectangleLinesEx(rectangle, 10, color)
-          DrawText("#{frame.content}", frame.x + 20, frame.y + 20, 50, BLACK)
+      stack.each do |tile|
+        color = stack.current == wind ? GREEN : BLACK
+        if tile.x && tile.y && tile.width && tile.height
+          tile.configure
+          tile.show
         end
       end
-      DrawText("#{self.class.name}", 50, 50, 50, BLACK)
     end
   end
 end

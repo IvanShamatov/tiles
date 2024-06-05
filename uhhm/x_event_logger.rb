@@ -13,7 +13,7 @@ class XEventLogger
                    "window: #{xev.window}"
                  end
 
-    @logger.log [
+    @logger.info [
       'XEvent',
       xev.type,
       xev.send_event ? 'SENT' : nil,
@@ -22,6 +22,6 @@ class XEventLogger
   end
 
   def log_xerror(req, resource_id, msg)
-    @logger.log("XERROR: #{resource_id} #{req} #{msg}")
+    @logger.info("XERROR: #{resource_id} #{req} #{msg}")
   end
 end

@@ -25,6 +25,17 @@ class Tile
     !visible?
   end
 
+  def w = width
+  def h = height
+
+  def w=(...)
+    width(...)
+  end
+
+  def h=(...)
+    height(...)
+  end
+
   def name
     @name ||= @window.name
   end
