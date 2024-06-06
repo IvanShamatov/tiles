@@ -29,6 +29,7 @@ class Manager
     @modifier_ignore = []
     @keybinds = {
       [:Return]     => proc { execute 'rofi -show' },
+      [:q, :shift] => proc { stop! },
       [:Left] => proc { focus_prev },
       [:Right] => proc { focus_next },
       [:Up] => proc { swap_prev },
@@ -61,6 +62,10 @@ class Manager
     i = Layouts::AVAILABLE.index(@layout.class)
     @layout = Layouts::AVAILABLE[i-1].new(@display, @stack)
     @layout.render
+  end
+
+  def stop!
+    @runner.stop!
   end
 
   def to_io
@@ -140,21 +145,6 @@ class Manager
       handle_destroy_notify(event)
     when :error
       handle_error(event)
-    # when :configure_notify
-    #   handle_configure_notify(event)
-
-    # when :configure_request
-    #   handle_configure_request(event)
-    # when :create_notify
-    #   handle_create_notify(event)
-    # when :expose
-    #   handle_expose(event)
-    # when :property_notify
-    #   handle_property_notify(event)
-    # when :unmap_notify
-    #   handle_unmap_notify(event)
-    # else
-    #   log_event(event)
     end
   end
 

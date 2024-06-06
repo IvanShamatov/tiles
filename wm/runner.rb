@@ -5,9 +5,6 @@ class Runner
     runner = new
     runner.connect_manager
     runner.manager.execute('nitrogen --restore')
-    # runner.manager.execute('xeyes')
-    # runner.manager.execute('nemo')
-    # runner.manager.execute('kitty')
     runner.run
     runner.terminate
   end
