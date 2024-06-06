@@ -3,7 +3,7 @@ module Layouts
     def calculate
       if stack.current.x.nil? || stack.current.y.nil?
         tile_to_split = stack[stack.current_index - 1]
-        if tile_to_split.w >= tile_to_split.h
+        if tile_to_split.width >= tile_to_split.height
           split_columns(tile_to_split, stack.current)
         else
           split_rows(tile_to_split, stack.current)
@@ -12,24 +12,24 @@ module Layouts
     end
 
     def split_columns(tile_to_split, current)
-      fw = tile_to_split.w / 2
+      fw = tile_to_split.width / 2
 
       [tile_to_split, current].each_with_index do |f, i|
         f.x = tile_to_split.x + fw * i
         f.y = tile_to_split.y
-        f.w = fw
-        f.h = tile_to_split.h
+        f.width = fw
+        f.height = tile_to_split.height
       end
     end
 
     def split_rows(tile_to_split, current)
-      fh = tile_to_split.h / 2
+      fh = tile_to_split.height / 2
 
       [tile_to_split, current].each_with_index do |f, i|
         f.x = tile_to_split.x
         f.y = tile_to_split.y + fh * i
-        f.w = tile_to_split.w
-        f.h = fh
+        f.width = tile_to_split.width
+        f.height = fh
       end
     end
   end

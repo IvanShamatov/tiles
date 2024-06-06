@@ -6,8 +6,8 @@ module Layouts
       stack.each_with_index do |f, i|
         f.x = fw * i
         f.y = 0
-        f.w = fw
-        f.h = fh
+        f.width = fw
+        f.height = fh
       end
     end
   end

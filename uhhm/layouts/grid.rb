@@ -17,8 +17,8 @@ module Layouts
       pack.each_with_index do |f, i|
         f.x = fw * i
         f.y = y
-        f.w = fw
-        f.h = fh
+        f.width = fw
+        f.height = fh
       end
     end
   end

@@ -5,8 +5,8 @@ module Layouts
       left = stack[0]
       left.x = 0
       left.y = 0
-      left.w = width
-      left.h = stack.size > 1 ? height / 2.0 : height
+      left.width = width
+      left.height = stack.size > 1 ? height / 2.0 : height
 
       if stack.size > 1
         # the rest are going horizontal
@@ -15,8 +15,8 @@ module Layouts
         stack[1..].each_with_index do |f, i|
           f.x = fw * i
           f.y = fh
-          f.w = fw
-          f.h = fh
+          f.width = fw
+          f.height = fh
         end
       end
     end

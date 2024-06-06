@@ -3,12 +3,10 @@ require 'forwardable'
 class Stack
   extend Forwardable
 
-  def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select, :find
-
-  Window = Struct.new(:x, :y, :w, :h, :content, :color)
+  def_delegators :@arr, :size, :map, :each, :each_with_index, :[], :select, :find, :first, :last, :delete
 
   def initialize
-    @arr = []#Window.new(nil, nil, nil, nil, 0, RED)]
+    @arr = []
     @focus = 0
   end
 

@@ -25,20 +25,42 @@ class Manager
     @runner = runner
     @display = Uh::Display.new
     @stack = Stack.new # window stack
-    @layout = Layouts::AVAILABLE[0].new(@display, @stack)
-    @modifier = :mod1
+    @modifier = :ctrl
     @modifier_ignore = []
     @keybinds = {
-      %i[q shift] => proc { stop! },
-      [:p]         => proc { execute 'dmenu_run -b' },
-      [:Return]     => proc { execute 'kitty' },
-      [:Left] => proc { puts 'focus previous' },
-      [:Right] => proc { puts 'focus next' },
-      [:Up] => proc { puts 'swap previous' },
-      [:Down] => proc { puts 'swap next' },
-      [:d] => proc { puts 'delete window' },
-      [:l] => proc { puts 'next layout' }
+      [:Return]     => proc { execute 'rofi -show' },
+      [:Left] => proc { focus_prev },
+      [:Right] => proc { focus_next },
+      [:Up] => proc { swap_prev },
+      [:Down] => proc { swap_next },
+      [:Escape] => proc { next_layout },
     }.freeze
+  end
+
+  def focus_prev
+    @stack.focus_prev
+    @layout.render
+  end
+
+  def focus_next
+    @stack.focus_next
+    @layout.render
+  end
+
+  def swap_prev
+    @stack.swap_prev
+    @layout.render
+  end
+
+  def swap_next
+    @stack.swap_next
+    @layout.render
+  end
+
+  def next_layout
+    i = Layouts::AVAILABLE.index(@layout.class)
+    @layout = Layouts::AVAILABLE[i-1].new(@display, @stack)
+    @layout.render
   end
 
   def to_io
@@ -48,10 +70,12 @@ class Manager
   def connect
     $logger.info "Connecting to X server on `#{display}'"
     @display.open
+
     check_other_wm!
     Uh::Display.on_error { |*args| handle_error(*args) }
     @display.sync false
 
+    @layout = Layouts::AVAILABLE[0].new(@display, @stack)
     $logger.info "Connected to X server on `#{display}'"
 
     @display.root.mask = ROOT_MASK
@@ -75,87 +99,62 @@ class Manager
     end
   end
 
-  def configure(window)
-    $logger.info "Configuring window: #{window}"
-    if (tile = tile_for(window))
-      tile.configure
+  def evaluate(code = nil, &block)
+    if code
+      instance_exec(&code)
     else
-      geo = @layout.suggest_geo
-      window.configure_event geo || DEFAULT_GEO
+      instance_exec(&block)
     end
   end
 
-  def map(window)
-    binding.pry
-    return if window.override_redirect? || tile_for(window)
-
-    tile = Tile.new(window)
-    @stack.place(tile)
-    $logger.info "Managing tile #{tile}"
-    @layout.render
-    @display.listen_events window, Events::PROPERTY_CHANGE_MASK
-  end
-
-  def unmap(window)
-    return unless (tile = tile_for(window))
-
-    if tile.unmap_count.positive?
-      tile.unmap_count -= 1
-    else
-      unmanage tile
+  def execute(command)
+    $logger.info "Execute: #{command}"
+    pid = fork do
+      fork do
+        Process.setsid
+        begin
+          exec command
+        rescue Errno::ENOENT => e
+          $logger.info "ExecuteError: #{e}"
+        end
+      end
     end
-  end
-
-  def destroy(window)
-    return unless (tile = tile_for(window))
-
-    unmanage tile
+    Process.waitpid pid
   end
 
   def tile_for(window)
     @stack.find { |e| e.window == window }
   end
 
-  def update_properties(window)
-    return unless (tile = tile_for(window))
-
-    tile.update_window_properties
-    $logger.info "Updating client #{tile}"
-
-    @layout.update(tile)
-  end
-
   def handle_next_event
     handle @display.next_event
   end
 
-  def handle_pending_events
-    handle_next_event while @display.pending?
-  end
-
   def handle(event)
-    XEventLogger.new($logger).log_event event
-    case event.type.to_s
-    when 'error'
-      handle_error(event)
-    when 'key_pressed'
-      handle_key_pressed(event)
-    when 'configure_request'
-      handle_configure_request(event)
-    when 'configure_notify'
-      handle_configure_notify(event)
-    when 'create_notify'
-      handle_create_notify(event)
-    when 'destroy_notify'
-      handle_destroy_notify(event)
-    when 'expose'
-      handle_expose(event)
-    when 'map_request'
+    case event.type
+    when :key_press
+      handle_key_press(event)
+    when :map_request
       handle_map_request(event)
-    when 'property_notify'
-      handle_property_notify(event)
-    when 'unmap_notify'
-      handle_unmap_notify(event)
+    when :destroy_notify
+      handle_destroy_notify(event)
+    when :error
+      handle_error(event)
+    # when :configure_notify
+    #   handle_configure_notify(event)
+
+    # when :configure_request
+    #   handle_configure_request(event)
+    # when :create_notify
+    #   handle_create_notify(event)
+    # when :expose
+    #   handle_expose(event)
+    # when :property_notify
+    #   handle_property_notify(event)
+    # when :unmap_notify
+    #   handle_unmap_notify(event)
+    # else
+    #   log_event(event)
     end
   end
 
@@ -170,28 +169,49 @@ class Manager
   end
 
   def handle_key_press(event)
+    XEventLogger.new($logger).log_event(event)
     case remove_modifier_masks event.modifier_mask, @modifier_ignore
     when KEY_MODIFIERS[@modifier]
-      # @dispatcher.emit :key, event.key.to_sym
-      puts event.key.to_sym
+      if @keybinds.key?([event.key.to_sym])
+        evaluate(@keybinds[[event.key.to_sym]])
+      end
     when KEY_MODIFIERS[@modifier] | KEY_MODIFIERS[:shift]
-      # @dispatcher.emit :key, event.key.to_sym, :shift
-      puts event.key.to_sym
+      $logger.info event.key.to_sym
     end
   end
 
   def handle_configure_request(event)
-    configure event.window
+    window = event.window
+    $logger.info "Configuring window: #{window}"
+
+    if (tile = tile_for(window))
+      tile.configure
+    else
+      geo = @layout.suggest_geo
+      window.configure_event geo || DEFAULT_GEO
+    end
   end
 
   def handle_configure_notify(event)
+    window = event.window
+    $logger.info "Configuring nofity: #{window}"
+
+    # if (tile = tile_for(window))
+    #   tile.configure
+    # else
+    #   geo = @layout.suggest_geo
+    #   window.configure_event geo || DEFAULT_GEO
+    # end
   end
 
-  def handle_create_notify(event)
+  def log_event(event)
+    XEventLogger.new($logger).log_event(event)
   end
 
   def handle_destroy_notify(event)
-    destroy event.window
+    return unless (tile = tile_for(event.window))
+
+    unmanage tile
   end
 
   def handle_expose(event)
@@ -200,11 +220,25 @@ class Manager
   end
 
   def handle_map_request(event)
-    map(event.window)
+    window = event.window
+    return if window.override_redirect? || tile_for(window)
+
+    tile = Tile.new(window, Uh::Geo.new())
+    @stack.place(tile)
+    $logger.info "Managing tile #{tile}"
+
+    @layout.render
+    @display.listen_events window, Events::PROPERTY_CHANGE_MASK
   end
 
   def handle_property_notify(event)
-    update_properties event.window
+    window = event.window
+    return unless (tile = tile_for(window))
+
+    tile.update_window_properties
+    $logger.info "Updating client #{tile}"
+
+    @layout.update(tile)
   end
 
   def handle_unmap_notify(event)
@@ -214,7 +248,7 @@ class Manager
   def unmanage(tile)
     @stack.delete tile
     $logger.info "Unmanaging client #{tile}"
-    @layout.remove tile
+    @layout.render
   end
 
   def check_other_wm!
